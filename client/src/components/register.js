@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
-import './../css/registration.css';
+import "./../css/registration.css";
 import { Link } from "react-router-dom";
 
 const Register = () => {
@@ -75,7 +75,7 @@ const Register = () => {
               onChange={regChangeHandler}
               placeholder="Email"
             />
-                        {errors.email ? (
+            {errors.email ? (
               <p className="text-danger">{errors.email.message}</p>
             ) : (
               ""
@@ -89,7 +89,7 @@ const Register = () => {
               onChange={regChangeHandler}
               placeholder="Password"
             />
-                        {errors.password ? (
+            {errors.password ? (
               <p className="text-danger">{errors.password.message}</p>
             ) : (
               ""
@@ -102,7 +102,7 @@ const Register = () => {
               name="password-repeat"
               placeholder="Password (repeat)"
             />
-                        {errors.confirm ? (
+            {errors.confirm ? (
               <p className="text-danger">{errors.confirm.message}</p>
             ) : (
               ""
@@ -128,7 +128,6 @@ const Register = () => {
       </div>
     </section>
   );
-
 };
 
 export default Register;
