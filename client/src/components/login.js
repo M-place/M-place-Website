@@ -39,7 +39,7 @@ const Login = () => {
       <form method="post">
         <h2 className="visually-hidden">Login Form</h2>
         <div className="logo">
-        <img src={logoDark} draggable="false" alt="logo"/>
+          <img src={logoDark} draggable="false" alt="logo" />
         </div>
         <div className="mb-3">
           <input
@@ -68,7 +68,6 @@ const Login = () => {
       </form>
     </section>
   );
-
 };
 
 export default Login;
