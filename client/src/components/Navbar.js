@@ -239,12 +239,18 @@ const Navbar = () => {
           <div className="row align-items-center position-relative">
             <div className="col-3">
               <div className="site-logo">
+<<<<<<< HEAD
                 {/* <Link to="/" className="font-weight-bold">
                   <img src={logo} draggable="false" alt="logo"/>
 
                 <a href="/" className="font-weight-bold">
                   <img src={logo} draggable="false" alt="logo" />
                 </a> */}
+=======
+                <Link to="/" className="font-weight-bold">
+                  <img src={logo} draggable="false" alt="logo" />
+                </Link>
+>>>>>>> 2cd150edc2ef0440040b5e6bdc9e0d9174d38fe1
               </div>
             </div>
 
@@ -356,6 +362,7 @@ const Navbar = () => {
               </div>
             </div>
             <div className="col-200 userDetailsNavbar">
+<<<<<<< HEAD
               {/* <FaUserAlt className="iconUser"/>
               <Link to="/login">Sign In</Link>/<Link to="/register">Sign Up</Link>
               <FaShoppingCart className="iconCart"/>
@@ -363,6 +370,12 @@ const Navbar = () => {
               <FaUserAlt className="iconUser" />
               <a href="/login">Sign In</a>/<a href="/register">Sign Up</a>
               <FaShoppingCart className="iconCart" /> */}
+=======
+              <FaUserAlt className="iconUser" />
+              <Link to="/login">Sign In</Link>/
+              <Link to="/register">Sign Up</Link>
+              <FaShoppingCart className="iconCart" />
+>>>>>>> 2cd150edc2ef0440040b5e6bdc9e0d9174d38fe1
             </div>
           </div>
         </div>
