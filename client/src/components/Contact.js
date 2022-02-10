@@ -92,10 +92,7 @@ const Contact = () => {
                 rows="8"
               ></textarea>
             </div>
-            <button
-              className="btn btn-primary"
-              type="submit"
-            >
+            <button className="btn btn-primary" type="submit">
               SEND
             </button>
           </form>
