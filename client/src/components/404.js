@@ -6,7 +6,7 @@ const Erreur404 = () => {
   let history = useHistory();
   return (
     <div className="NotFound">
-      <img src={NotFound} draggable="false" alt="hello" />
+      <img alt="" src={NotFound} draggable="false" />
       <button
         onClick={history.goBack}
         className="btn btn-primary d-block w-100"
