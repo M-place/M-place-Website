@@ -14,13 +14,7 @@ class BadRequestError extends CustomAPIError {
   }
 }
 
-class NotFoundError extends CustomAPIError {
-  constructor(message) {
-    super(message);
-    this.statusCode = StatusCodes.NOT_FOUND;
-  }
-}
-
+// Add a new Category
 const addCategory = async (req, res) => {
   const { name, parent } = req.body;
 
@@ -47,6 +41,7 @@ const addCategory = async (req, res) => {
   res.status(StatusCodes.OK).json({ message: " Category added successfully " });
 };
 
+// Get all the categories
 const getAllCategories = async (req, res) => {
   await Category.find({})
     .then((val) => {
@@ -67,6 +62,7 @@ const getCategoryById = async (req, res) => {
     });
 };
 
+// Update the category by id
 const updateCategory = async (req, res) => {
   const cat = new Category({
     _id: req.params.id,
@@ -88,6 +84,7 @@ const updateCategory = async (req, res) => {
     });
 };
 
+// Delete a category by id
 const deleteCategory = async (req, res) => {
   Category.deleteOne({ _id: req.params.id })
     .then(() => {
