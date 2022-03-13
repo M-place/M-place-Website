@@ -33,16 +33,13 @@ const Footer = () => {
             </ul>
           </div>
           <div className="col-sm-6 col-md-3 item">
-            <h3>About</h3>
+            <h3>Important links</h3>
             <ul>
               <li>
-                <a href="#">Company</a>
+                <Link to="login">Login Product Owner</Link>
               </li>
               <li>
-                <a href="#">Team</a>
-              </li>
-              <li>
-                <a href="#">Careers</a>
+                <Link to="login">Start selling in our marketplace</Link>
               </li>
             </ul>
           </div>

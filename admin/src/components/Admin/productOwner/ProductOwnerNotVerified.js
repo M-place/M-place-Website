@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BiXCircle, BiPlayCircle, BiCheckCircle } from "react-icons/bi";
+import { AiOutlineClockCircle } from "react-icons/ai";
 import { Modal, Button } from "react-bootstrap";
-import pic from "./../../../meeting.jpg";
+import api from "./../../../config.service";
 const ProductOwnerNotVerified = () => {
   //modal details
   const [showDetails, setDetailsShow] = useState(false);
@@ -19,32 +20,48 @@ const ProductOwnerNotVerified = () => {
   const AcceptClose = () => setAcceptShow(false);
   const AcceptShow = () => setAcceptShow(true);
 
+  //Modal RDV
+  const [showRDV, setRDVShow] = useState(false);
+  const RDVClose = () => setRDVShow(false);
+  const RDVShow = () => setRDVShow(true);
+
   //id for the fonctionality of Modal
   const [POToRefuse, setPOToRefuse] = useState(0);
   const [POToAccept, setPOToAccept] = useState(0);
-  const [POToDetails, setPOToDetails] = useState(0);
+  const [RDVID, setRDVID] = useState(0);
 
   //data of modal detils
-  const [dataDetails, setDataDetails] = useState({
-    id: 2121212,
-    name: "lenovo",
-    logo: "https://logo.clearbit.com/lenovo.com",
-    pack: 2,
-    date: "12-05-2021 17:33:15",
-    email: "contact@lenovo.com",
-  });
-  function ChargeDataDetails(id) {
-    //import data with api
-    setDataDetails({
-      id: id,
-      name: "chanel",
-      logo: "https://logo.clearbit.com/chanel.com",
-      pack: 2,
-      date: "06-01-2022 17:33:15",
-      email: "marketing@chanel.com",
-    });
+  const [POConsult, setPOConsult] = useState({});
+  // function find PO
+  function findPO(id) {
+    setPOConsult(POs.find((user) => user.id === id));
     DetailsShow();
   }
+  // action (accept or refuse)
+  const [Action, setAction] = useState(true);
+  //errer validation password
+  const [errorValidationPassword, seterrorValidationPassword] = useState("");
+  //password input
+  const [password, setPassword] = useState("");
+
+  const PasswordValidShow = () => setPasswordValidShow(true);
+  const [showPasswordValid, setPasswordValidShow] = useState(false);
+  const PasswordValidClose = () => {
+    setPasswordValidShow(false);
+    setPassword("");
+    seterrorValidationPassword("");
+  };
+
+  function SendRDV() {
+    if (RDVID !== 0) {
+      //api refuse with id of POToRefuse
+      console.log(RDVID);
+      //this next 2 line inside the fetch 'its the success of function '
+      setRDVID(0);
+      RefuseClose();
+    }
+  }
+
   function RefusePO() {
     if (POToRefuse !== 0) {
       //api refuse with id of POToRefuse
@@ -88,32 +105,52 @@ const ProductOwnerNotVerified = () => {
       </td>
     );
   }
-  const [POs, setPOs] = useState([
-    {
-      id: 66666,
-      name: "lenovo",
-      logo: "https://logo.clearbit.com/lenovo.com",
-      pack: 2,
-      date: "12-05-2021 17:33:15",
-      email: "contact@lenovo.com",
-    },
-    {
-      id: 77777,
-      name: "apple",
-      logo: "https://logo.clearbit.com/apple.com",
-      pack: 1,
-      date: "03-08-2022 17:33:15",
-      email: "Admin@apple.com",
-    },
-    {
-      id: 88888,
-      name: "chanel",
-      logo: "https://logo.clearbit.com/chanel.com",
-      pack: 2,
-      date: "06-01-2022 17:33:15",
-      email: "marketing@chanel.com",
-    },
-  ]);
+
+  //function verification password
+  const verificationPassword = async () => {
+    if (password.length === 0) {
+      seterrorValidationPassword("Enter your Password");
+      console.log(password);
+    } else if (password.length < 8) {
+      seterrorValidationPassword("Password should be at list 8 caractere");
+      console.log(password);
+    } else {
+      await api
+        .get("/verififcationPassword", { password: password })
+        .then((response) => {
+          if (Action) {
+            AcceptPO();
+          } else {
+            RefusePO();
+          }
+        })
+        .catch((err) => {
+          seterrorValidationPassword("erreru");
+        });
+    }
+  };
+  //function to get Password
+  function getPassword(val) {
+    seterrorValidationPassword("");
+    setPassword(val.target.value);
+  }
+
+  //begin api getAll
+  const [POs, setPOs] = useState([]);
+  const retrievePO = async () => {
+    const response = await api.get("/POs");
+    return response.data;
+  };
+
+  useEffect(() => {
+    const getAllPO = async () => {
+      const allUsers = await retrievePO();
+      if (allUsers) setPOs(allUsers);
+    };
+    getAllPO();
+  }, []);
+  //end api getAll
+
   return (
     <div>
       <nav aria-label="breadcrumb">
@@ -161,11 +198,17 @@ const ProductOwnerNotVerified = () => {
                   <tr key={PO.id}>
                     <td>
                       <div className="data picture">
-                        <img src={PO.logo} alt={PO.name} draggable="false" />
+                        <img
+                          src={PO.avatar}
+                          alt={PO.first_name}
+                          draggable="false"
+                        />
                       </div>
                     </td>
                     <td>
-                      <div className="data">{PO.name}</div>
+                      <div className="data">
+                        {PO.first_name} {PO.last_name}
+                      </div>
                     </td>
                     <td>
                       <div className="data">{PO.email}</div>
@@ -179,10 +222,19 @@ const ProductOwnerNotVerified = () => {
                         <div
                           className="action"
                           onClick={() => {
-                            ChargeDataDetails(PO.id);
+                            findPO(PO.id);
                           }}
                         >
                           <BiPlayCircle />
+                        </div>
+                        <div
+                          className="action"
+                          onClick={() => {
+                            setRDVID(PO.id);
+                            RDVShow();
+                          }}
+                        >
+                          <AiOutlineClockCircle />
                         </div>
                         <div
                           className="action"
@@ -193,6 +245,7 @@ const ProductOwnerNotVerified = () => {
                         >
                           <BiXCircle />
                         </div>
+
                         <div
                           className="action"
                           onClick={() => {
@@ -221,30 +274,28 @@ const ProductOwnerNotVerified = () => {
           <Modal.Title>Details</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <table className="w-100">
-            <tr>
-              <td>ID</td>
-              <td>{dataDetails.id}</td>
-            </tr>
-            <tr>
-              <td>Logo</td>
-              <td>
-                <img
-                  src={dataDetails.logo}
-                  alt={dataDetails.name}
-                  draggable="false"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td>Name</td>
-              <td>{dataDetails.name}</td>
-            </tr>
-            <tr>
-              <td>Email</td>
-              <td>{dataDetails.email}</td>
-            </tr>{" "}
-          </table>
+          <div className="w-100 text-center">
+            <div
+              className="avatar m-auto"
+              style={{ backgroundImage: "url(" + POConsult.avatar + ")" }}
+            ></div>
+          </div>
+          <div className="tableOfData mt-3">
+            <table className="w-100">
+              <tr>
+                <th>First Name :</th>
+                <td>{POConsult.first_name}</td>
+              </tr>
+              <tr>
+                <th>Last Name :</th>
+                <td>{POConsult.last_name}</td>
+              </tr>
+              <tr>
+                <th>Email :</th>
+                <td>{POConsult.email}</td>
+              </tr>
+            </table>
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={DetailsClose}>
@@ -266,11 +317,44 @@ const ProductOwnerNotVerified = () => {
           <Button variant="secondary" onClick={RefuseClose}>
             No
           </Button>
-          <Button variant="danger" onClick={RefusePO}>
+          <Button
+            variant="danger"
+            onClick={() => {
+              setAction(false);
+              RefuseClose();
+              PasswordValidShow();
+            }}
+          >
             Yes
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <Modal
+        show={showRDV}
+        onHide={RDVClose}
+        backdrop="static"
+        keyboard={false}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Send appointment</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>You wanna really send appointment ?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={RDVClose}>
+            No
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              SendRDV();
+            }}
+          >
+            Yes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <Modal
         show={showAccept}
         onHide={AcceptClose}
@@ -285,8 +369,41 @@ const ProductOwnerNotVerified = () => {
           <Button variant="secondary" onClick={AcceptClose}>
             No
           </Button>
-          <Button variant="danger" onClick={AcceptPO}>
+          <Button
+            variant="danger"
+            onClick={() => {
+              setAction(true);
+              AcceptClose();
+              PasswordValidShow();
+            }}
+          >
             Yes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal
+        show={showPasswordValid}
+        onHide={PasswordValidClose}
+        backdrop="static"
+        keyboard={false}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Confiramation Of password</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="validationPassword">
+          <input
+            type="password"
+            placeholder="Enter Your Password"
+            onChange={getPassword}
+          />
+          <p className="messageError">{errorValidationPassword}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={PasswordValidClose}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={verificationPassword}>
+            Confirm
           </Button>
         </Modal.Footer>
       </Modal>

@@ -83,3 +83,18 @@
   opacity: 0.9;
   text-decoration: none;
 }
+
+.messageEmailConfiramation {
+  background: #fff;
+  padding: 2em;
+}
+.w-200px {
+  width: 200px;
+}
+.erreur {
+  background: #ff00000f !important;
+  border: 1px solid red !important;
+}
+.erreurLicence {
+  color: red;
+}

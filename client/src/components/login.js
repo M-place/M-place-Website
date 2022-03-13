@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useHistory } from "react-router-dom";
 import "./../css/login.css";
 import logoDark from "./../logoDark.svg";
+import api from "./../config.service";
 import { Link } from "react-router-dom";
 
 const Login = () => {
@@ -20,26 +20,37 @@ const Login = () => {
       ...loginInfo,
       [e.target.name]: e.target.value,
     });
-    console.log(loginInfo);
   };
   const [ErreurDisplay, setErreurDisplay] = useState("");
   const login = (e) => {
     e.preventDefault();
-    axios
-      .post("http://172.16.134.104:3000/api/v1/auth/Client/login", loginInfo, {
-        withCredentials: true,
-      })
-      .then((res) => {
-        console.log("LOGGGIN IN RESPONSE", res);
+    setErreurDisplay("");
+    if (!loginInfo.email || !loginInfo.password) {
+      setErreurDisplay("All data required !");
+    } else if (
+      !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(loginInfo.email)
+    ) {
+      setErreurDisplay("You have entered an invalid email address!");
+    } else if (loginInfo.password.length < 8) {
+      setErreurDisplay("The password should be more than 8 characters");
+    } else {
+      api
+        .post("api/v1/auth/Client/login", loginInfo, {
+          withCredentials: true,
+        })
+        .then((res) => {
+          console.log("LOGGGIN IN RESPONSE", res);
 
-        localStorage.setItem("token", res.data.token);
-        history.push("/");
-      })
-      .catch(function (error) {
-        if (error.response) {
-          setErreurDisplay(error.response.data.msg);
-        }
-      });
+          localStorage.setItem("token", res.data.access_token);
+          localStorage.setItem("user", res.data.name);
+          history.push("/");
+        })
+        .catch(function (error) {
+          if (error.response) {
+            setErreurDisplay(error.response.data.msg);
+          }
+        });
+    }
   };
 
   return (
@@ -67,14 +78,19 @@ const Login = () => {
             placeholder="Password"
           />
         </div>
-        {ErreurDisplay}
+        <small className="text-danger text-center d-block">
+          {ErreurDisplay}
+        </small>
         <div className="mb-3">
           <button className="btn btn-primary d-block w-100" type="submit">
             Log In
           </button>
         </div>
-        <Link className="forgot" to="/register">
-          Forgot your email or password?
+        <Link className="forgot" to="/forgetPassword">
+          Forgot your password?
+        </Link>
+        <Link className="forgot mt-2" to="/register">
+          I don't have an account? Register here.
         </Link>
       </form>
     </section>
