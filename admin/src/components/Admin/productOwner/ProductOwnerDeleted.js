@@ -5,7 +5,7 @@ import { Modal, Button, Spinner } from "react-bootstrap";
 import api from "./../../../config.service";
 import convertDate from "./../../../function";
 
-const ProductOwnerBlocked = () => {
+const ProductOwnerDeleted = () => {
   //modal details
   const [showDetails, setDetailsShow] = useState(false);
   const DetailsClose = () => setDetailsShow(false);
@@ -41,29 +41,6 @@ const ProductOwnerBlocked = () => {
     seterrorValidationPassword("");
   };
 
-  function DeblockPO() {
-    if (POToDeblock !== 0) {
-      //api Deblock with id of POToDeblock
-
-      api
-        .patch("/POs/unBlock/" + POToDeblock)
-        .then((response) => {
-          PasswordValidClose();
-          const newPOList = POs.filter((user) => {
-            return user._id !== POToDeblock;
-          });
-          setPOs(newPOList);
-          setPOToDeblock(0);
-          DeblockClose();
-        })
-        .catch((err) => {
-          console.log(err);
-          seterrorValidationPassword("Something Wrong!");
-        });
-
-      console.log("Accept" + POToDeblock);
-    }
-  }
   function findPack(pack) {
     var classPack = "";
     var NamePack = "";
@@ -90,39 +67,10 @@ const ProductOwnerBlocked = () => {
     );
   }
 
-  //function verification password
-  const verificationPassword = async () => {
-    setLoading(true);
-    if (password.length === 0) {
-      seterrorValidationPassword("Enter your Password");
-    } else if (password.length < 8) {
-      seterrorValidationPassword("Password should be at list 8 caractere");
-    } else {
-      await api
-        .post("/api/v1/auth/Admin/verifyPassword", { password: password })
-        .then((response) => {
-          if (response.data.message) {
-            DeblockPO();
-          } else {
-            seterrorValidationPassword("Password incorrect!");
-          }
-        })
-        .catch((err) => {
-          seterrorValidationPassword("Something Wrong!");
-        });
-    }
-    setLoading(false);
-  };
-  //function to get Password
-  function getPassword(val) {
-    seterrorValidationPassword("");
-    setPassword(val.target.value);
-  }
-
   //begin api getAll
   const [POs, setPOs] = useState([]);
   const retrievePO = async () => {
-    const response = await api.get("/bockedPOs");
+    const response = await api.get("/deletedPOs");
     console.log(response.data);
     return response.data;
   };
@@ -145,13 +93,13 @@ const ProductOwnerBlocked = () => {
           </li>
           <li className="breadcrumb-item">Product Owner</li>
           <li className="breadcrumb-item active" aria-current="page">
-            Product Owner Blocked
+            Product Owner Deleted
           </li>
         </ol>
       </nav>
       <div className="cardTemplate shadow-sm">
         <div className="title-cardTemplate">
-          <h1>List of Product Owner Blocked</h1>
+          <h1>List of Product Owner Deleted</h1>
         </div>
         <div className="content-cardTemplate">
           <table>
@@ -210,16 +158,6 @@ const ProductOwnerBlocked = () => {
                           }}
                         >
                           <BiPlayCircle />
-                        </div>
-
-                        <div
-                          className="action p-1"
-                          onClick={() => {
-                            setPOToDeblock(PO._id);
-                            DeblockShow();
-                          }}
-                        >
-                          <BiCheckCircle />
                         </div>
                       </div>
                     </td>
@@ -303,64 +241,8 @@ const ProductOwnerBlocked = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
-      <Modal
-        show={showDeblock}
-        onHide={DeblockClose}
-        backdrop="static"
-        keyboard={false}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Unblock</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>You wanna really unblock ?</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={DeblockClose}>
-            No
-          </Button>
-          <Button
-            variant="danger"
-            onClick={() => {
-              DeblockClose();
-              PasswordValidShow();
-            }}
-          >
-            Yes
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      <Modal
-        show={showPasswordValid}
-        onHide={PasswordValidClose}
-        backdrop="static"
-        keyboard={false}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmation Of password</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="validationPassword">
-          <input
-            type="password"
-            placeholder="Enter Your Password"
-            onChange={getPassword}
-          />
-          <p className="messageError">{errorValidationPassword}</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={PasswordValidClose}>
-            Cancel
-          </Button>
-          <Button variant="danger w-100px" onClick={verificationPassword}>
-            {loading ? (
-              <Spinner animation="border" className="loadingIcon" />
-            ) : (
-              "Confirm"
-            )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </div>
   );
 };
 
-export default ProductOwnerBlocked;
+export default ProductOwnerDeleted;
