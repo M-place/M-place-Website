@@ -14,17 +14,23 @@ import RegisterPO from "./components/registerPO/registerPO";
 import ForgetPassword from "./components/forgetPassword";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import ResetPassword from "./components/resetPassword";
+import Search from "./components/search";
 import Myaccount from "./components/User/myaccount";
+import LoginAdmin from "./components/loginAdmin";
+import Chat from "./components/User/chat";
 
 function App() {
   return (
     <Router>
       <Switch>
-        <Route exact path="/test">
+        <Route exact path="/registerPO">
           <RegisterPO />
         </Route>
         <Route exact path="/login">
           <Login />
+        </Route>
+        <Route exact path="/loginAdmin">
+          <LoginAdmin />
         </Route>
         <Route exact path="/register">
           <Register />
@@ -38,6 +44,16 @@ function App() {
         <Route exact path="/myaccount">
           <Navbar />
           <Myaccount />
+          <Footer />
+        </Route>
+        <Route exact path="/chat">
+          <Navbar />
+          <Chat />
+          <Footer />
+        </Route>
+        <Route exact path="/search">
+          <Navbar />
+          <Search />
           <Footer />
         </Route>
         <Route exact path="/">
