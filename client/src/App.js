@@ -18,11 +18,15 @@ import Search from "./components/search";
 import Myaccount from "./components/User/myaccount";
 import LoginAdmin from "./components/loginAdmin";
 import Chat from "./components/User/chat";
-
+import Test from "./components/User/test";
+import LoginPO from "./components/loginPO";
 function App() {
   return (
     <Router>
       <Switch>
+        <Route exact path="/test">
+          <Test />
+        </Route>
         <Route exact path="/registerPO">
           <RegisterPO />
         </Route>
@@ -31,6 +35,9 @@ function App() {
         </Route>
         <Route exact path="/loginAdmin">
           <LoginAdmin />
+        </Route>
+        <Route exact path="/loginPO">
+          <LoginPO />
         </Route>
         <Route exact path="/register">
           <Register />
