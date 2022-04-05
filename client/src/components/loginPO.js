@@ -5,7 +5,7 @@ import logoDark from "./../logoDark.svg";
 import api from "./../config.service";
 import { Link } from "react-router-dom";
 
-const Login = () => {
+const LoginPO = () => {
   const history = useHistory();
   if (localStorage.getItem("token") !== null) {
     history.push("/");
@@ -36,15 +36,16 @@ const Login = () => {
       setErreurDisplay("The password should be more than 8 characters");
     } else {
       api
-        .post("api/v1/auth/Client/login", loginInfo, {
+        .post("api/v1/auth/PO/login", loginInfo, {
           withCredentials: true,
         })
         .then((res) => {
-          console.log("LOGGGIN IN RESPONSE", res);
-
-          localStorage.setItem("token", res.data.access_token);
-          localStorage.setItem("user", res.data.name);
-          history.push("/");
+          console.log(res);
+          window.location.href =
+            "http://localhost:3002/Redirect/" +
+            res.data.access_token +
+            "/" +
+            res.data.refresh_token;
         })
         .catch(function (error) {
           if (error.response) {
@@ -87,15 +88,9 @@ const Login = () => {
             Log In
           </button>
         </div>
-        <Link className="forgot" to="/forgetPassword">
-          Forgot your password?
-        </Link>
-        <Link className="forgot mt-2" to="/register">
-          I don't have an account? Register here.
-        </Link>
       </form>
     </section>
   );
 };
 
-export default Login;
+export default LoginPO;

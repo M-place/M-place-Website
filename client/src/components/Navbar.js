@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
+import { useHistory } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap";
 import "./../css/navbar.css";
 import logo from "./../logo.svg";
 import { Link } from "react-router-dom";
@@ -249,6 +250,20 @@ const Navbar = () => {
     }
   }
 
+  function logout() {
+    api.post("Client/logout", { token: localStorage.getItem("token") });
+    localStorage.clear();
+    window.location.reload();
+  }
+  const [InputSearch, setInputSearch] = useState("");
+  const SearchChangeHandler = (e) => {
+    setInputSearch(e.target.value);
+  };
+  const history = useHistory();
+  function searchNavbar(e) {
+    e.preventDefault();
+    history.push("/search?q=" + InputSearch);
+  }
   return (
     <div className="header">
       <div className="ContactHeader"></div>
@@ -355,7 +370,7 @@ const Navbar = () => {
           <div className="row position-relative margin-10p">
             {loadNavbar()}
 
-            <div className="col pl-0">
+            <div className="col p-0">
               <div className="h-100">
                 <button
                   className="navbar-toggler d-lg-none"
@@ -364,13 +379,17 @@ const Navbar = () => {
                 >
                   <span className="navbar-toggler-icon"></span>
                 </button>
-                <form className="form-group d-none d-lg-flex">
+                <form
+                  className="form-group d-none d-lg-flex"
+                  onSubmit={searchNavbar}
+                >
                   <div className="search">
                     <input
                       className="search"
                       type="search"
                       placeholder="Cherchez un produit, une marque ou une catégorie"
                       aria-label="Search"
+                      onChange={SearchChangeHandler}
                     />
                   </div>
                   <button className="search-button" type="submit">
@@ -380,16 +399,57 @@ const Navbar = () => {
               </div>
             </div>
             {IsLoggin() ? (
-              <div className="col-200 userDetailsNavbar">
-                <FaUserAlt className="iconUser" />
-                <Link to="/profil">{localStorage.getItem("user")}</Link> |
+              <div className="col-200">
+                <div className="userNav">
+                  <span
+                    type="button"
+                    className="SpanUserNav"
+                    id="dropdownClient"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <FaUserAlt className="iconUser" />
+                    <span className="username">
+                      {localStorage.getItem("user")}
+                    </span>
+                  </span>
+                  <ul
+                    class="dropdown-menu dropdown-menu-end"
+                    aria-labelledby="dropdownClient"
+                  >
+                    <li>
+                      <Link
+                        to={"/myaccount"}
+                        class="dropdown-item "
+                        type="button"
+                      >
+                        My account
+                      </Link>
+                    </li>
+                    <li>
+                      <button
+                        class="dropdown-item"
+                        type="button"
+                        onClick={logout}
+                      >
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+                |
                 <FaShoppingCart className="iconCart mx-2" />
               </div>
             ) : (
-              <div className="col-200 userDetailsNavbar">
+              <div className="col-250 userDetailsNavbar">
                 <FaUserAlt className="iconUser" />
-                <Link to="/login">Sign In</Link>/
-                <Link to="/register">Sign Up</Link>
+                <Link to="/login" className="navFromNavbar">
+                  Sign In
+                </Link>
+                /
+                <Link to="/register" className="navFromNavbar">
+                  Sign Up
+                </Link>
                 <FaShoppingCart className="iconCart" />
               </div>
             )}

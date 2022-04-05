@@ -36,10 +36,13 @@ const Footer = () => {
             <h3>Important links</h3>
             <ul>
               <li>
-                <Link to="login">Login Product Owner</Link>
+                <Link to="/login">Login Product Owner</Link>
               </li>
               <li>
-                <Link to="login">Start selling in our marketplace</Link>
+                <Link to="/loginAdmin">Login Admin</Link>
+              </li>
+              <li>
+                <Link to="/registerPO">Start selling in our marketplace</Link>
               </li>
             </ul>
           </div>
@@ -52,16 +55,16 @@ const Footer = () => {
             </p>
           </div>
           <div className="col item social">
-            <a href="#">
+            <a href="/">
               <RiFacebookFill className="icon" />
             </a>
-            <a href="#">
+            <a href="/">
               <RiTwitterFill className="icon" />
             </a>
-            <a href="#">
+            <a href="/">
               <RiWhatsappFill className="icon" />
             </a>
-            <a href="#">
+            <a href="/">
               <RiInstagramFill className="icon" />
             </a>
           </div>

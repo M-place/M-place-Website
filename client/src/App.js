@@ -14,16 +14,30 @@ import RegisterPO from "./components/registerPO/registerPO";
 import ForgetPassword from "./components/forgetPassword";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import ResetPassword from "./components/resetPassword";
-
+import Search from "./components/search";
+import Myaccount from "./components/User/myaccount";
+import LoginAdmin from "./components/loginAdmin";
+import Chat from "./components/User/chat";
+import Test from "./components/User/test";
+import LoginPO from "./components/loginPO";
 function App() {
   return (
     <Router>
       <Switch>
         <Route exact path="/test">
+          <Test />
+        </Route>
+        <Route exact path="/registerPO">
           <RegisterPO />
         </Route>
         <Route exact path="/login">
           <Login />
+        </Route>
+        <Route exact path="/loginAdmin">
+          <LoginAdmin />
+        </Route>
+        <Route exact path="/loginPO">
+          <LoginPO />
         </Route>
         <Route exact path="/register">
           <Register />
@@ -33,6 +47,21 @@ function App() {
         </Route>
         <Route exact path="/resetPassword/:token">
           <ResetPassword />
+        </Route>
+        <Route exact path="/myaccount">
+          <Navbar />
+          <Myaccount />
+          <Footer />
+        </Route>
+        <Route exact path="/chat">
+          <Navbar />
+          <Chat />
+          <Footer />
+        </Route>
+        <Route exact path="/search">
+          <Navbar />
+          <Search />
+          <Footer />
         </Route>
         <Route exact path="/">
           <Navbar />
@@ -59,6 +88,11 @@ function App() {
           <Contact />
           <Footer />
         </Route>
+        <Route exact path="/Product/:product">
+          <Navbar />
+          <Product />
+          <Footer />
+        </Route>
         <Route exact path="/:categ">
           <Navbar />
           <Category />
@@ -66,17 +100,12 @@ function App() {
         </Route>
         <Route exact path="/:categ/:sousCateg">
           <Navbar />
-          <div>en cours</div>
+          <Category />
           <Footer />
         </Route>
         <Route exact path="/:categ/:sousCateg/:sousSousCateg">
           <Navbar />
-          <div>en cours</div>
-          <Footer />
-        </Route>
-        <Route exact path="/:categ/:sousCateg/:sousSousCateg/:product">
-          <Navbar />
-          <Product />
+          <Category />
           <Footer />
         </Route>
 
