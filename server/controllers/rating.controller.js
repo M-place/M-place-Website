@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+import Client from "../models/Client.model.js";
 import Product from "../models/Product.model.js";
 import Rating from "../models/Rating.model.js";
 
@@ -15,6 +16,7 @@ class BadRequestError extends CustomAPIError {
   }
 }
 
+// Add a new rating
 const addRating = async (req, res) => {
   const { userId, SKU, rate, comment } = req.body;
 
@@ -37,6 +39,7 @@ const addRating = async (req, res) => {
   res.status(StatusCodes.OK).json({ p });
 };
 
+// Get all ratings
 const getAllRatings = async (req, res) => {
   await Rating.find({})
     .sort({ rate: -1 })
@@ -50,6 +53,7 @@ const getAllRatings = async (req, res) => {
     });
 };
 
+// Get a rating by id
 const getRatingById = async (req, res) => {
   await Rating.find({ _id: req.params.id })
     .then((val) => {
@@ -62,6 +66,7 @@ const getRatingById = async (req, res) => {
     });
 };
 
+// Update rating by id
 const updateRating = async (req, res) => {
   const prod = await Rating.findById(req.params.id);
   const p = new Rating({
@@ -82,6 +87,7 @@ const updateRating = async (req, res) => {
     });
 };
 
+// Delete rating by id
 const deleteRating = async (req, res) => {
   await Rating.deleteOne({ _id: req.params.id })
     .then(() => {
@@ -94,6 +100,7 @@ const deleteRating = async (req, res) => {
     });
 };
 
+// Get rating by product id
 const getRatingByProduct = async (req, res) => {
   await Product.findById(req.params.id)
     .then(async (val) => {
@@ -110,7 +117,40 @@ const getRatingByProduct = async (req, res) => {
     });
 };
 
+const getRatingBySKU = (req, res) => {
+  Rating.find({ productSKU: req.params.SKU })
+    .limit(5)
+    .sort({ createdAt: -1 })
+    .then(async (val) => {
+      if (val.length == 0) {
+        res.status(StatusCodes.OK).json("No reviews");
+      }
+      let arr = [];
+      console.log(val);
+      for (let x of val) {
+        let cli = await Client.findOne({ _id: x.userId });
+        console.log(cli);
+        let rat = {
+          id: x._id,
+          client: cli.firstname + " " + cli.lastname,
+          stars: x.rate,
+          date: x.createdAt,
+          pictture: cli.profile_img,
+          comment: x.comment,
+        };
+        console.log(rat);
+
+        arr.push(rat);
+      }
+      res.status(StatusCodes.OK).json(arr);
+    })
+    .catch((error) => {
+      throw new BadRequestError(error);
+    });
+};
+
 export {
+  getRatingBySKU,
   addRating,
   getAllRatings,
   getRatingById,

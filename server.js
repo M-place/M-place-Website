@@ -4,7 +4,7 @@ const app = express();
 import "express-async-errors";
 
 import cors from "cors";
-app.use(cors());
+app.use(cors({ credentials: true, origin: "*" }));
 
 import dotenv from "dotenv";
 dotenv.config();
