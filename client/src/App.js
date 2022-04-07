@@ -11,56 +11,58 @@ import Erreur404 from "./components/404";
 import Product from "./components/product";
 import Category from "./components/category";
 import RegisterPO from "./components/registerPO/registerPO";
-import Template from "./components/Panel/components/template";
+import ForgetPassword from "./components/forgetPassword";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-
+import ResetPassword from "./components/resetPassword";
+import Search from "./components/search";
+import Myaccount from "./components/User/myaccount";
+import LoginAdmin from "./components/loginAdmin";
+import Chat from "./components/User/chat";
+import Test from "./components/User/test";
+import LoginPO from "./components/loginPO";
 function App() {
   return (
     <Router>
       <Switch>
         <Route exact path="/test">
+          <Test />
+        </Route>
+        <Route exact path="/registerPO">
           <RegisterPO />
-        </Route>
-        <Route exact path="/admin/product">
-          <Template data={"product"} />
-        </Route>
-        <Route exact path="/admin/dashboard">
-          <Template data={"dashboard"} />
-        </Route>
-        <Route exact path="/admin/users">
-          <Template data={"users"} />
-        </Route>
-        <Route exact path="/admin/category">
-          <Template data={"category"} />
-        </Route>
-        <Route exact path="/admin/productOwner">
-          <Template data={"productOwner"} />
-        </Route>
-        <Route exact path="/admin/productOwnerNotVerified">
-          <Template data={"productOwnerNotVerified"} />
-        </Route>
-        <Route exact path="/admin/productOwnerDeleted">
-          <Template data={"productOwnerDeleted"} />
-        </Route>
-        <Route exact path="/admin/messages">
-          <Template data={"messages"} />
-        </Route>
-        <Route exact path="/admin/reports">
-          <Template data={"reports"} />
-        </Route>
-        <Route exact path="/admin/events">
-          <Template data={"events"} />
-        </Route>
-        <Route exact path="/admin/blogs">
-          <Template data={"blogs"} />
         </Route>
         <Route exact path="/login">
           <Login />
         </Route>
+        <Route exact path="/loginAdmin">
+          <LoginAdmin />
+        </Route>
+        <Route exact path="/loginPO">
+          <LoginPO />
+        </Route>
         <Route exact path="/register">
           <Register />
         </Route>
-
+        <Route exact path="/forgetPassword">
+          <ForgetPassword />
+        </Route>
+        <Route exact path="/resetPassword/:token">
+          <ResetPassword />
+        </Route>
+        <Route exact path="/myaccount">
+          <Navbar />
+          <Myaccount />
+          <Footer />
+        </Route>
+        <Route exact path="/chat">
+          <Navbar />
+          <Chat />
+          <Footer />
+        </Route>
+        <Route exact path="/search">
+          <Navbar />
+          <Search />
+          <Footer />
+        </Route>
         <Route exact path="/">
           <Navbar />
           <Presentation />
@@ -86,6 +88,11 @@ function App() {
           <Contact />
           <Footer />
         </Route>
+        <Route exact path="/Product/:product">
+          <Navbar />
+          <Product />
+          <Footer />
+        </Route>
         <Route exact path="/:categ">
           <Navbar />
           <Category />
@@ -93,17 +100,12 @@ function App() {
         </Route>
         <Route exact path="/:categ/:sousCateg">
           <Navbar />
-          <div>en cours</div>
+          <Category />
           <Footer />
         </Route>
         <Route exact path="/:categ/:sousCateg/:sousSousCateg">
           <Navbar />
-          <div>en cours</div>
-          <Footer />
-        </Route>
-        <Route exact path="/:categ/:sousCateg/:sousSousCateg/:product">
-          <Navbar />
-          <Product />
+          <Category />
           <Footer />
         </Route>
 

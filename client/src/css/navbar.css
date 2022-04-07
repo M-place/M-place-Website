@@ -81,6 +81,10 @@
   width: 200px;
   padding: 0;
 }
+.col-250 {
+  width: 250px;
+  padding: 0;
+}
 .col-700 {
   width: 700px;
   padding: 0;
@@ -273,19 +277,35 @@ button:focus {
 
 /*******************User detals ***************/
 
-.userDetailsNavbar {
-  height: 50px;
-  padding-top: 0.6em;
-}
-.userDetailsNavbar a {
+.userNav .SpanUserNav .username,
+.navFromNavbar {
   color: white;
   transition: 0.3s;
   margin: 8px;
 }
-.userDetailsNavbar a:hover {
+.userNav .SpanUserNav .username {
+  text-transform: capitalize;
+}
+.navFromNavbar:hover {
   color: #fb8500;
 }
 .iconUser,
 .iconCart {
   font-size: 20px;
+}
+.userNav {
+  display: inline-block;
+  height: 100%;
+}
+.SpanUserNav,
+.userDetailsNavbar {
+  padding: 0.6em;
+  height: 100%;
+}
+.SpanUserNav:hover {
+  background: #fb8500;
+}
+.userNav .dropdown-menu {
+  border-radius: 1px;
+  border-bottom: 4px solid #fb8500;
 }
