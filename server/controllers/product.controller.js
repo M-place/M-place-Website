@@ -2,6 +2,9 @@ import { StatusCodes } from "http-status-codes";
 import Category from "../models/Category.model.js";
 import Product from "../models/Product.model.js";
 import Rating from "../models/Rating.model.js";
+import Variable from "../models/Variable.model.js";
+import Filter from "../models/Filter.model.js";
+
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
@@ -20,18 +23,28 @@ class BadRequestError extends CustomAPIError {
 
 // Add a new product
 const addProduct = async (req, res) => {
-  const { name, SKU, marque, description, category, filters } = req.body;
-
-  const product = new Product({
+  const {
     name,
     SKU,
     marque,
+    short_description,
     description,
-    categoryId: category,
-    Filter_list: filters,
-  });
+    category,
+    filters,
+    product_imgs,
+    reduction_percentage,
+    visibility,
+  } = req.body;
 
-  if (!name || !SKU || !marque || !description || !category) {
+  if (
+    !name ||
+    !SKU ||
+    !marque ||
+    !product_imgs ||
+    !description ||
+    !short_description ||
+    !category
+  ) {
     throw new BadRequestError("please provide all values");
   }
   const isCategoryExist = await Category.find({ _id: category });
@@ -39,8 +52,81 @@ const addProduct = async (req, res) => {
     throw new BadRequestError("Category id does not exist !!");
   }
 
+  let authHeader = req.headers.authorization;
+  authHeader = authHeader || authHeader.startsWith("Bearer");
+  const token = authHeader.split(" ")[1];
+  const payload = await jwt.verify(token, process.env.ACCESS_TOKEN);
+  // const poId = mongoose.Types.ObjectId(payload.PO);
+
+  const product = new Product({
+    name,
+    SKU,
+    marque,
+    short_description,
+    description,
+    product_imgs,
+    categoryId: category,
+    Filter_list: filters,
+    visibility: visibility || false,
+    reduction_percentage: reduction_percentage || 0,
+    PostedBy: payload.PO,
+  });
   const prod = await Product.create(product);
   res.status(StatusCodes.OK).json({ prod });
+};
+
+const addProductWithJson = async (req, res) => {
+  try {
+    const { data } = req.body;
+    let f_list = [];
+    for (let x of data.filters) {
+      let v_list = [];
+      for (let y of x.Variable_list) {
+        const v = new Variable({
+          name: y.name,
+          option: y.option,
+        });
+        const variable = await Variable.create(v);
+        v_list.push(variable._id);
+      }
+      const f = new Filter({
+        name: x.name,
+        Variable_list: v_list,
+        quantity: x.quantity,
+        price: x.price,
+      });
+      const filter = await Filter.create(f);
+      f_list.push(filter._id);
+    }
+    const isCategoryExist = await Category.find({ _id: data.category });
+    if (!isCategoryExist) {
+      throw new BadRequestError("Category id does not exist !!");
+    }
+
+    let authHeader = req.headers.authorization;
+    authHeader = authHeader || authHeader.startsWith("Bearer");
+    const token = authHeader.split(" ")[1];
+    const payload = await jwt.verify(token, process.env.ACCESS_TOKEN);
+    // const poId = mongoose.Types.ObjectId(payload.PO);
+
+    const p = new Product({
+      name: data.name,
+      SKU: data.SKU,
+      marque: data.marque,
+      short_description: data.short_description,
+      description: data.description,
+      product_imgs: data.product_imgs,
+      categoryId: data.category,
+      Filter_list: f_list,
+      visibility: data.visibility || false,
+      reduction_percentage: data.reduction_percentage || 0,
+      PostedBy: payload.PO,
+    });
+    const product = await Product.create(p);
+    res.status(StatusCodes.OK).json({ product });
+  } catch (error) {
+    throw new BadRequestError(error);
+  }
 };
 
 // Get all products
@@ -118,7 +204,7 @@ const deleteProduct = async (req, res) => {
 const getProductByCategory = async (req, res) => {
   await Category.find({ name: req.params.category })
     .then(async (cat) => {
-      await Product.find({ categoryId: cat[0]._id })
+      await Product.find({ categoryId: cat[0]._id, visibility: true })
         .then((val) => {
           val.length == 0
             ? res.status(StatusCodes.OK).json("No products to show")
@@ -135,7 +221,7 @@ const getProductByCategory = async (req, res) => {
 
 // Get product by marque name
 const getProductByMarque = async (req, res) => {
-  await Product.find({ marque: req.params.marque })
+  await Product.find({ marque: req.params.marque, visibility: true })
     .then((val) => {
       val.length == 0
         ? res.status(StatusCodes.OK).json("No products to show")
@@ -295,79 +381,6 @@ const getRatingForSKU = async (sku, rat) => {
   return s / n;
 };
 
-const getFilterAndProducts = async (sf, filterby, page, val) => {
-  let arr = [];
-  for (let i of val) {
-    if (sf.length != 0) {
-      let g = false;
-      for (let j of i.Filter_list) {
-        if (checkVariables(j.Variable_list, sf)) {
-          g = true;
-          break;
-        }
-      }
-      if (g) arr.push(i);
-    } else {
-      arr.push(i);
-    }
-  }
-  let fils = [];
-  for (let i of arr) {
-    for (let j of i.Filter_list) {
-      for (let k of j.Variable_list) {
-        if (!variable_name_exist(k.name, fils)) {
-          fils.push({
-            name: k.name,
-            option: [],
-          });
-        }
-        addOption(k.name, k.option, fils);
-      }
-    }
-  }
-  var tab = {
-    filter: fils,
-    products: [],
-    number_of_products: 0,
-  };
-
-  const rat = await Rating.find({}).exec();
-  const cat = await Category.find({}).exec();
-  for (let i of arr) {
-    let stars = await getRatingForSKU(i.SKU, rat);
-    // let link = await getCategoryLink(i.categoryId._id, cat);
-
-    tab.products.push({
-      id: i._id,
-      name: i.name,
-      SKU: i.SKU,
-      stars: stars,
-      description: i.description,
-      price: i.Filter_list[0].price,
-      reduction_percentage: i.reduction_percentage,
-      product_imgs: i.product_imgs,
-      variables: i.Filter_list,
-      // link: link,
-    });
-  }
-  tab.number_of_products = tab.products.length;
-  if (filterby == "pc") {
-    tab.products.sort((a, b) =>
-      a.price > b.price ? 1 : b.price > a.price ? -1 : 0
-    );
-  } else if (filterby == "pd") {
-    tab.products.sort((a, b) =>
-      a.price < b.price ? 1 : b.price < a.price ? -1 : 0
-    );
-  } else if (filterby == "r") {
-    tab.products.sort((a, b) =>
-      a.stars < b.stars ? 1 : b.stars < a.stars ? -1 : 0
-    );
-  }
-  tab.products = tab.products.splice((page - 1) * 48, 48);
-  return tab;
-};
-
 const getMyProducts = async (req, res) => {
   let authHeader = req.headers.authorization;
   authHeader = authHeader || authHeader.startsWith("Bearer");
@@ -405,8 +418,92 @@ const getMyProducts = async (req, res) => {
       throw new BadRequestError(error);
     });
 };
+
+const getFilterAndProducts = async (sf, filterby, page, val) => {
+  let arr = [...val];
+
+  let fils = [];
+  for (let i of arr) {
+    for (let j of i.Filter_list) {
+      for (let k of j.Variable_list) {
+        if (!variable_name_exist(k.name, fils)) {
+          fils.push({
+            name: k.name,
+            option: [],
+          });
+        }
+        addOption(k.name, k.option, fils);
+      }
+    }
+  }
+  var tab = {
+    filter: fils,
+    products: [],
+    number_of_products: 0,
+  };
+
+  const rat = await Rating.find({}).exec();
+  for (let i of arr) {
+    let stars = await getRatingForSKU(i.SKU, rat);
+
+    tab.products.push({
+      id: i.SKU,
+      name: i.name,
+      stars: stars,
+      price: i.Filter_list[0].price,
+      reduction_percentage: i.reduction_percentage,
+      picture: i.product_imgs[0],
+      // link: link,
+    });
+  }
+  tab.number_of_products = tab.products.length;
+  if (filterby == "pc") {
+    tab.products.sort((a, b) =>
+      a.price > b.price ? 1 : b.price > a.price ? -1 : 0
+    );
+  } else if (filterby == "pd") {
+    tab.products.sort((a, b) =>
+      a.price < b.price ? 1 : b.price < a.price ? -1 : 0
+    );
+  } else if (filterby == "r") {
+    tab.products.sort((a, b) =>
+      a.stars < b.stars ? 1 : b.stars < a.stars ? -1 : 0
+    );
+  }
+  tab.products = tab.products.splice((page - 1) * 48, 48);
+  return tab;
+};
+
+const searchProduct = (req, res) => {
+  const reg = new RegExp(req.body.string);
+  Product.find({
+    name: { $regex: reg, $options: "i" },
+    visibility: true,
+  })
+    .populate({
+      path: "Filter_list",
+      populate: {
+        path: "Variable_list",
+        model: "Variable",
+      },
+    })
+    .then(async (val) => {
+      const tab = await getFilterAndProducts(
+        req.body.filters || [],
+        req.body.filterBy || "",
+        req.body.page || 1,
+        val
+      );
+      res.status(StatusCodes.OK).json(tab);
+    })
+    .catch((error) => {
+      throw new BadRequestError(error);
+    });
+};
+
 export {
   addProduct,
+  addProductWithJson,
   getAllProducts,
   getMyProducts,
   getProductById,
@@ -418,4 +515,5 @@ export {
   deleteFiltersFromProduct,
   getProductFilters,
   getProductBySKU,
+  searchProduct,
 };
