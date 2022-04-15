@@ -99,6 +99,20 @@ const POSchema = new mongoose.Schema(
       required: [true, "Please provide your tax ID card URL"],
       unique: true,
     },
+    owner_firstname: {
+      type: String,
+      required: [true, "Please provide your owner_firstname"],
+      minlength: 3,
+      maxlength: 20,
+      trim: true,
+    },
+    owner_lastname: {
+      type: String,
+      required: [true, "Please provide your owner_lastname"],
+      minlength: 3,
+      maxlength: 20,
+      trim: true,
+    },
     owner_ID_type: {
       type: String,
       required: [true, "Please provide your owner_ID_type ( Passport or CIN )"],
@@ -126,6 +140,11 @@ POSchema.pre("save", async function () {
 POSchema.methods.createJWT = function () {
   return jwt.sign({ PO: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_LIFETIME,
+  });
+};
+POSchema.methods.createVerJWT = function () {
+  return jwt.sign({ PO: this._id }, process.env.VER_JWT_SECRET, {
+    expiresIn: process.env.VER_JWT_LIFETIME,
   });
 };
 

@@ -1,6 +1,8 @@
 import PO from "../models/PO.model.js";
 import { StatusCodes } from "http-status-codes";
 import RefreshToken from "../models/RefreshToken.model.js";
+import verificationTempl from "../templates/validation.js";
+import resetPasswordTempl from "../templates/resetPassword.js";
 
 import jwt from "jsonwebtoken";
 
@@ -30,33 +32,15 @@ const register = async (req, res) => {
     zip_code,
     address,
     professional_phone_number,
-    verification,
     creation_date,
     tax_ID_number,
+    owner_firstname,
+    owner_lastname,
     tax_ID_card,
     owner_ID_type,
     owner_ID,
     RNE_number,
   } = req.body;
-  const newPO = new PO({
-    company_name,
-    company_email,
-    password,
-    logo_url,
-    country,
-    city,
-    state,
-    zip_code,
-    address,
-    professional_phone_number,
-    verification,
-    creation_date,
-    tax_ID_number,
-    tax_ID_card,
-    owner_ID_type,
-    owner_ID,
-    RNE_number,
-  });
   if (
     !company_name ||
     !company_email ||
@@ -70,6 +54,8 @@ const register = async (req, res) => {
     !professional_phone_number ||
     !creation_date ||
     !tax_ID_number ||
+    !owner_firstname ||
+    !owner_lastname ||
     !tax_ID_card ||
     !owner_ID_type ||
     !owner_ID ||
@@ -77,6 +63,26 @@ const register = async (req, res) => {
   ) {
     throw new BadRequestError("please provide all values");
   }
+  const newPO = new PO({
+    company_name,
+    company_email,
+    password,
+    logo_url,
+    country,
+    city,
+    state,
+    zip_code,
+    address,
+    professional_phone_number,
+    creation_date,
+    tax_ID_number,
+    owner_firstname,
+    owner_lastname,
+    tax_ID_card,
+    owner_ID_type,
+    owner_ID,
+    RNE_number,
+  });
 
   const POAlreadyExists = await PO.findOne(
     { company_email } || { professional_phone_number }
@@ -86,28 +92,24 @@ const register = async (req, res) => {
   }
 
   const po = await PO.create(newPO);
-  const token = po.createJWT();
+  const verToken = po.createVerJWT();
+  let transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: { user: process.env.GMAIL_EMAIL, pass: process.env.GMAIL_PASSWORD },
+  });
+  const link = `http://localhost:3000/api/v1/auth/PO/verify/${verToken}`;
+  // send mail with defined transport object
+  let info = await transporter.sendMail({
+    from: process.env.GMAIL_EMAIL, // sender address
+    to: po.company_email, // list of receivers
+    subject: "Email Verification For Product Owner", // Subject line
+    // text: `Dear ${client.name} please confirm your account using this link: 172.16.134.111:3000/api/v1/auth/Client/verify/${verToken}`,
+    html: verificationTempl(po.company_name, link),
+  });
+  transporter.sendMail(info);
+
   res.status(StatusCodes.OK).json({
-    Product_Owner: {
-      company_name,
-      company_email,
-      password,
-      logo_url,
-      country,
-      city,
-      state,
-      zip_code,
-      address,
-      professional_phone_number,
-      verification,
-      creation_date,
-      tax_ID_number,
-      tax_ID_card,
-      owner_ID_type,
-      owner_ID,
-      RNE_number,
-    },
-    token,
+    po,
   });
 };
 
@@ -184,31 +186,60 @@ const logout = async (req, res) => {
   }
 };
 
+const forgetPassword = async (req, res) => {
+  const po = await PO.findOne({ company_email: req.body.email });
+  if (!po) res.send("No Product owner found");
+  const verToken = po.createVerJWT();
+  console.log(verToken);
+  let transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: { user: process.env.GMAIL_EMAIL, pass: process.env.GMAIL_PASSWORD },
+  });
+  const link = `http://localhost:3000/api/v1/auth/PO/resetPassword/${verToken}`;
+
+  // send mail with defined transport object
+  let info = await transporter.sendMail({
+    from: process.env.GMAIL_EMAIL, // sender address
+    to: po.company_email, // list of receivers
+    subject: "Forget Password For Product Owner", // Subject line
+    // text: `Dear ${client.name} please confirm your account using this link: 172.16.134.111:3000/api/v1/auth/Client/verify/${verToken}`,
+    html: resetPasswordTempl(po.company_name, link),
+  });
+  transporter.sendMail(info);
+
+  res.status(StatusCodes.OK).json({
+    po,
+  });
+};
+
+const getHash = async (pass) => {
+  const salt = await bcrypt.genSalt(10);
+  const hash = await bcrypt.hash(pass, salt);
+
+  return hash;
+};
 const resetPassword = async (req, res) => {
   try {
-    const verified = jwt.verify(req.params.token, process.env.ACCESS_TOKEN);
-    if (!verified) return res.send("Acces denied");
-    console.log(verified);
+    const payload = jwt.verify(req.params.token, process.env.VER_JWT_SECRET);
+    if (!payload) return res.send("Acces denied");
     if (!(req.body.password == req.body.confirmPassword))
       return res.send("please confirm with the right password");
-    ///// Hash passwords/////
-    const salt = await bcrypt.genSalt(10);
 
-    const hash = await bcrypt.hash(req.body.password, salt);
+    const hash = await getHash(req.body.password);
 
-    console.log(hash);
+    console.log("hash", hash);
     const po = await PO.findOneAndUpdate(
-      { _id: verified.Client },
+      { _id: payload.PO },
       {
         $set: {
           password: hash,
         },
       }
     );
-    if (!po) return res.send("Invalid Id...");
     console.log(po);
+    if (!po) return res.send("Invalid Id...");
 
-    res.json(po);
+    res.status(StatusCodes.OK).json("password updated successfully !!!");
   } catch (err) {
     res.json({ message: err });
   }
@@ -217,7 +248,11 @@ const resetPassword = async (req, res) => {
 const verifyPO = async (req, res) => {
   try {
     const payload = jwt.verify(req.params.token, process.env.VER_JWT_SECRET);
-    await PO.findOneAndUpdate(
+    const po = await PO.findById(payload.PO);
+    if (!po) {
+      throw new BadRequestError("Product Owner does not exist !!!");
+    }
+    PO.findOneAndUpdate(
       { _id: payload.PO },
       {
         $set: {
@@ -225,10 +260,42 @@ const verifyPO = async (req, res) => {
         },
       }
     );
-    res.status(StatusCodes.OK).json("Account Verified !");
+    const rdv = await Rdv.find({ for_PO: po._id });
+    if (rdv) {
+      throw new BadRequestError("Product Owner already had a Rendez-vous !!!");
+    }
+    // const d = new Date();
+
+    const v = new Rdv({
+      for_PO: po._id,
+      date:
+        date ||
+        randomDate(
+          new Date(),
+          new Date(new Date().setDate(new Date().getDate() + 7))
+        ),
+    });
+
+    Rdv.create(v)
+      .then((rdv) => {
+        res
+          .status(StatusCodes.OK)
+          .json("Account Verified and Rendez-vous set :", rdv);
+      })
+      .catch((err) => {
+        throw new BadRequestError(err);
+      });
   } catch (error) {
     throw new BadRequestError(error);
   }
 };
 
-export { register, login, logout, refreshToken, resetPassword, verifyPO };
+export {
+  register,
+  login,
+  logout,
+  refreshToken,
+  forgetPassword,
+  resetPassword,
+  verifyPO,
+};
