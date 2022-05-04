@@ -5,7 +5,10 @@ import "slick-carousel/slick/slick-theme.css";
 import "./../css/carousel.css";
 import { Link } from "react-router-dom";
 import { BsStarFill, BsStarHalf, BsStar } from "react-icons/bs";
+import { ToastContainer, toast } from "react-toastify";
 
+import "react-toastify/dist/ReactToastify.css";
+const notify = () => toast.success("Product added");
 function showStars(stars) {
   const nbr = Math.trunc(stars);
   var rows = [];
@@ -40,7 +43,30 @@ function showStars(stars) {
   }
   return rows;
 }
-
+function addToLocalStorage(item) {
+  let listProduct = JSON.parse(localStorage.getItem("products")) || [];
+  const indexProduct = listProduct.findIndex(
+    (product) => product.id === item.id
+  );
+  if (indexProduct === -1) {
+    let newProduct = {
+      id: item.id,
+      img: item.picture,
+      name: item.name,
+      nbrProduct: 1,
+      price: item.price,
+      reduction: item.reduction,
+      sku: item.SKU,
+    };
+    listProduct.push(newProduct);
+    localStorage.setItem("products", JSON.stringify(listProduct));
+    notify();
+  } else {
+    listProduct[indexProduct].nbrProduct += 1;
+    localStorage.setItem("products", JSON.stringify(listProduct));
+    notify();
+  }
+}
 export default class Responsive extends Component {
   render() {
     var settings = {
@@ -80,8 +106,7 @@ export default class Responsive extends Component {
     return (
       <div>
         <h2 className="titleCarousel">
-          Featured <b>Products</b>
-          {console.log(this.props.data)}
+          {this.props.name} <b>Products</b>
         </h2>
         <Slider {...settings}>
           {this.props.data.map((item, key) => {
@@ -89,35 +114,60 @@ export default class Responsive extends Component {
               <div className="itemCarousel" key={key}>
                 <div className="thumb-wrapper">
                   <div className="img-box">
-                    <img
-                      src={item.picture}
-                      className="img-fluid"
-                      alt="Play Station"
-                      draggable="false"
-                    />
+                    <Link to={"Product/" + item.SKU}>
+                      <img
+                        src={item.picture}
+                        className="img-fluid"
+                        alt="Play Station"
+                        draggable="false"
+                      />
+                    </Link>
                   </div>
                   <div className="thumb-content">
-                    <h4>{item.name}</h4>
+                    <Link className="item-name" to={"Product/" + item.SKU}>
+                      <p className="text-dark">{item.name}</p>
+                    </Link>
                     <p className="item-price">
-                      <strike>{item.lastPrise} TND</strike>{" "}
-                      <b>{item.newPrise} TND</b>
+                      {item.reduction == 0 ? (
+                        <b>{item.price} TND</b>
+                      ) : (
+                        <>
+                          <strike>{item.price} TND</strike>
+                          <b>
+                            {(item.price * (100 - item.reduction)) / 100} TND
+                          </b>
+                        </>
+                      )}
                     </p>
                     <div className="star-rating">
                       <ul className="list-inline">{showStars(item.stars)}</ul>
                     </div>
-                    <Link
+                    <button
                       className="btn btn-orange btn-sm"
-                      to={item.link}
+                      onClick={() => {
+                        addToLocalStorage(item);
+                      }}
                       data-abc="true"
                     >
                       Add to Cart
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>
             );
           })}
         </Slider>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       </div>
     );
   }

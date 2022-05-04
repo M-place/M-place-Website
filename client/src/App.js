@@ -1,9 +1,7 @@
 import Navbar from "./components/Navbar";
 import Presentation from "./components/Presentation";
 import About from "./components/About";
-import Blogs from "./components/Blogs";
 import Contact from "./components/Contact";
-import Events from "./components/Events";
 import Footer from "./components/footer";
 import Login from "./components/login";
 import Register from "./components/register";
@@ -20,6 +18,9 @@ import LoginAdmin from "./components/loginAdmin";
 import Chat from "./components/User/chat";
 import Test from "./components/User/test";
 import LoginPO from "./components/loginPO";
+import Panier from "./components/User/panier";
+import PrivacyPolicy from "./components/privacy-policy";
+import TermsAndConditions from "./components/terms-and-conditions";
 function App() {
   return (
     <Router>
@@ -58,6 +59,11 @@ function App() {
           <Chat />
           <Footer />
         </Route>
+        <Route exact path="/panier">
+          <Navbar />
+          <Panier />
+          <Footer />
+        </Route>
         <Route exact path="/search">
           <Navbar />
           <Search />
@@ -68,24 +74,24 @@ function App() {
           <Presentation />
           <Footer />
         </Route>
-        <Route exact path="/events">
-          <Navbar />
-          <Events />
-          <Footer />
-        </Route>
         <Route exact path="/about">
           <Navbar />
           <About />
           <Footer />
         </Route>
-        <Route exact path="/blogs">
-          <Navbar />
-          <Blogs />
-          <Footer />
-        </Route>
         <Route exact path="/contact">
           <Navbar />
           <Contact />
+          <Footer />
+        </Route>
+        <Route exact path="/PrivacyPolicy">
+          <Navbar />
+          <PrivacyPolicy />
+          <Footer />
+        </Route>
+        <Route exact path="/TermsAndConditions">
+          <Navbar />
+          <TermsAndConditions />
           <Footer />
         </Route>
         <Route exact path="/Product/:product">
