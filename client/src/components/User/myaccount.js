@@ -14,6 +14,8 @@ const Myaccount = () => {
     country: "",
     phone: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [ErreurDisplay, setErreurDisplay] = useState("");
   const [UpdateInfo, setUpdateInfo] = useState({
     firstname: "",
     lastname: "",
@@ -94,7 +96,18 @@ const Myaccount = () => {
       )
     ) {
       //api update user
-      console.log("update");
+      setLoading(true);
+      api
+        .post("/Client/update", UpdateInfo)
+        .then((res) => {
+          setLoading(false);
+        })
+        .catch(function (error) {
+          if (error.response) {
+            setLoading(false);
+            setErreurDisplay(error.response.data.msg);
+          }
+        });
     }
   }
   //end function save
@@ -252,9 +265,25 @@ const Myaccount = () => {
             />
             <div className="form-text">{erreur.newPassword}</div>
           </div>
+          <div className="text-center text-danger mb-2">
+            <small>{ErreurDisplay}</small>
+          </div>
           <div className="text-end">
-            <button className="btn btn-orange m-auto" onClick={Save}>
-              Save
+            <button
+              className="btn btn-orange m-auto"
+              disabled={loading}
+              onClick={Save}
+            >
+              {loading ? (
+                <div
+                  class="spinner-border text-secondary spinner-small m-auto"
+                  role="status"
+                >
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              ) : (
+                "Save"
+              )}
             </button>
           </div>
         </div>
