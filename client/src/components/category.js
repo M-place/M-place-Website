@@ -7,7 +7,10 @@ import { useEffect } from "react";
 import { Pagination } from "react-bootstrap";
 import { useState } from "react";
 import api from "./../config.service";
+import { ToastContainer, toast } from "react-toastify";
 
+import "react-toastify/dist/ReactToastify.css";
+const notify = () => toast.success("Product added");
 // function return the stars of every product
 function showStars(stars) {
   const nbr = Math.trunc(stars);
@@ -47,9 +50,9 @@ function showStars(stars) {
 
 // urlParams return the searchParams from the URL
 const urlParams = new URLSearchParams(window.location.search);
-
-const Category = () => {
-  const { categ, sousCateg, sousSousCateg } = useParams();
+const Category = ({ CalcnumberOfProduct }) => {
+  const history = useHistory();
+  const { categorie } = useParams();
   //begin api getAllByCateg
   const [data, setdata] = useState({
     filter: [],
@@ -57,12 +60,21 @@ const Category = () => {
     number_of_products: 0,
   });
   const retrieveUsers = async () => {
-    const response = await api.get(
-      "/categoriess/" + (sousSousCateg || sousCateg || categ)
+    const response = await api.post(
+      "/categoryProducts/" + categorie.replaceAll("_", " ")
     );
     return response.data;
   };
+  const [idCategorie, setIdCategorie] = useState("");
   useEffect(() => {
+    api.get("/categoryId/" + categorie).then((res) => {
+      if (res.data) {
+        setIdCategorie(res.data.id);
+        //add here getAllUsers();
+      } else {
+        history.push("/404");
+      }
+    });
     const getAllUsers = async () => {
       const allUsers = await retrieveUsers();
       if (allUsers) setdata(allUsers);
@@ -70,8 +82,6 @@ const Category = () => {
     getAllUsers();
   }, []);
   //end api getAllByCateg
-
-  const history = useHistory();
   //nombre of pagination
   let numberItems = parseInt(data.nbrOfProduct / 48);
   if (data.nbrOfProduct > numberItems) {
@@ -83,6 +93,33 @@ const Category = () => {
       window.location.pathname + "?page=" + e.target.getAttribute("page")
     );
     setActive(parseInt(e.target.getAttribute("page")));
+  }
+  //add product to card
+  function addToLocalStorage(item) {
+    console.log(item);
+    let listProduct = JSON.parse(localStorage.getItem("products")) || [];
+    const indexProduct = listProduct.findIndex(
+      (product) => product.id === item.id
+    );
+    if (indexProduct === -1) {
+      let newProduct = {
+        id: item.id,
+        img: item.picture,
+        name: item.name,
+        nbrProduct: 1,
+        price: item.price,
+        reduction: item.reduction_percentage.toString(),
+        sku: item.SKU,
+      };
+      listProduct.push(newProduct);
+      localStorage.setItem("products", JSON.stringify(listProduct));
+      notify();
+    } else {
+      listProduct[indexProduct].nbrProduct += 1;
+      localStorage.setItem("products", JSON.stringify(listProduct));
+      notify();
+    }
+    CalcnumberOfProduct();
   }
   // change filter of search
   const [SearchData, setSearchData] = useState([]);
@@ -103,12 +140,37 @@ const Category = () => {
           },
         ],
       ]);
-      var filter = {};
-      api.get("/categoriess/" + (sousSousCateg || sousCateg || categ));
     } else {
       setSearchData((data) => [...newSearch]);
     }
   }
+  const [trie, setTrie] = useState("");
+  function trieChange(e) {
+    setTrie(e.target.value);
+  }
+  useEffect(() => {
+    var filter = {
+      filters: SearchData,
+      filterBy: trie,
+      page: active,
+    };
+    api
+      .post("/categoryProducts/" + categorie.replaceAll("_", " "), filter)
+      .then((res) => {
+        setdata(res.data);
+      });
+  }, [SearchData, trie]);
+
+  const checkValidation = (value, variable) => {
+    const indexSearchData = SearchData.findIndex(
+      (product) => product.value === value && product.variable === variable
+    );
+    if (indexSearchData === -1) {
+      return false;
+    } else {
+      return true;
+    }
+  };
   // pagination active
   const [active, setActive] = useState(parseInt(urlParams.get("page")) || 1);
   let items = [];
@@ -119,76 +181,95 @@ const Category = () => {
   // useParam
 
   return (
-    <div className="container-lg">
+    <div className="container-lg mb-5">
       <div className="navigation">
         {"MarketPlace > "}
-        {categ ? categ : ""}
-        {sousCateg ? " > " + sousCateg : ""}
-        {sousSousCateg ? " > " + sousSousCateg : ""}
+        {categorie ? categorie : ""}
       </div>
       <div className="row">
         <div className="d-none d-md-block col-3">
           <div className="Filter  bg-white rounded p-3">
             <div className="titleFilter">Filter by</div>
-            {data.filter.map((variable, key) => {
-              return (
-                <>
-                  <div className="titleVariable">{variable.name}</div>
-                  <div className="p-3">
-                    {variable.option.map((opt) => {
-                      return (
-                        <div>
-                          <input
-                            type="checkbox"
-                            id={opt.name}
-                            name={opt.name}
-                            variable={variable.name}
-                            onChange={FilterChange}
-                          />
-                          <label for={opt.name}>
-                            {opt.name}
-                            <span class="badge rounded-pill">
-                              {opt.nombreProduct}
-                            </span>
-                          </label>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              );
-            })}
+            {data.products.length === 0 ? (
+              <div className="Empty"></div>
+            ) : (
+              <>
+                {data.filter.map((variable, key) => {
+                  return (
+                    <>
+                      <div className="titleVariable">{variable.name}</div>
+                      <div className="p-3">
+                        {variable.option.map((opt) => {
+                          return (
+                            <div>
+                              <input
+                                type="checkbox"
+                                id={opt.name}
+                                name={opt.name}
+                                variable={variable.name}
+                                onChange={FilterChange}
+                                checked={checkValidation(
+                                  opt.name,
+                                  variable.name
+                                )}
+                              />
+                              <label for={opt.name}>
+                                {opt.name}
+                                <span class="badge rounded-pill">
+                                  {opt.nombreProduct}
+                                </span>
+                              </label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  );
+                })}
+              </>
+            )}
           </div>
         </div>
         <div className="col-12 col-md-9">
           <div className="Products bg-white rounded">
             <div className="titleProducts">
-              {categ}
+              {categorie}{" "}
+              {data.number_of_products
+                ? " ( " + data.number_of_products + " )"
+                : ""}
               <div className="trie">
-                <select name="trie" id="trie">
-                  <option value="0">Trie number one</option>
-                  <option value="1">Trie number two</option>
-                  <option value="2">Trie number three</option>
+                <select name="trie" id="trie" onChange={trieChange}>
+                  <option value="">Date</option>
+                  <option value="pc">Ascending price</option>
+                  <option value="pd">Decreasing price</option>
+                  <option value="r">Rating</option>
                 </select>
               </div>
             </div>
-            <div className="row">
-              {data.products.map((item, key) => {
-                return (
-                  <div className="col-6 col-sm-4 col-md-4 col-lg-3 mb-3">
-                    <Link to={"/Product/" + item.name}>
+            {data.products.length === 0 ? (
+              <div className="Empty mb-3">This category is empty</div>
+            ) : (
+              <div className="row pe-3 px-3">
+                {data.products.map((item, key) => {
+                  return (
+                    <div className="col-6 col-sm-4 col-md-4 col-lg-3 col-xl-2 mb-3 p-0">
                       <div className="itemProduct m-1" key={key}>
                         <div className="thumb-wrapper">
                           <div className="position-relative img-box">
-                            <div
-                              className="position-absolute imgProduct"
-                              style={{
-                                backgroundImage: "url(" + item.picture + ")",
-                              }}
-                            ></div>
+                            <Link to={"/Product/" + item.SKU}>
+                              <div
+                                className="position-absolute imgProduct"
+                                style={{
+                                  backgroundImage:
+                                    "url(" + item.picture[0] + ")",
+                                }}
+                              ></div>
+                            </Link>
                           </div>
                           <div className="thumb-content">
-                            <h4>{item.name}</h4>
+                            <Link to={"/Product/" + item.SKU}>
+                              <p className="text-dark">{item.name}</p>
+                            </Link>
                             <p className="item-price">
                               {item.reduction_percentage === 0 ? (
                                 <b>{item.price} TND</b>
@@ -211,21 +292,23 @@ const Category = () => {
                                 {showStars(item.stars)}
                               </ul>
                             </div>
-                            <Link
+                            <button
                               className="btn btn-orange btn-sm"
-                              to={item.link}
+                              onClick={() => {
+                                addToLocalStorage(item);
+                              }}
                               data-abc="true"
                             >
                               Add to Cart
-                            </Link>
+                            </button>
                           </div>
                         </div>
                       </div>
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
           <Pagination>
             {items.map((item, key) => {
@@ -241,6 +324,17 @@ const Category = () => {
               );
             })}
           </Pagination>
+          <ToastContainer
+            position="bottom-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+          />
         </div>
       </div>
     </div>

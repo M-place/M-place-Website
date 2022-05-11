@@ -9,7 +9,7 @@ import { AiOutlineMenu, AiOutlineClose, AiOutlineSearch } from "react-icons/ai";
 import { FaShoppingCart, FaUserAlt } from "react-icons/fa";
 import api from "./../config.service";
 
-const Navbar = () => {
+const Navbar = ({ numberOfProduct }) => {
   //begin api getAll
   const [Categories, setCategories] = useState([]);
   const retrieveCategories = async () => {
@@ -91,8 +91,6 @@ const Navbar = () => {
         for (var j = 0; j < Categories[i]["child"].length; j++) {
           sous_categ +=
             '<div class="sous-categorie-bloc"> <a href="/' +
-            Categories[i]["category"].replaceAll(" ", "_") +
-            "/" +
             Categories[i]["child"][j]["category"].replaceAll(" ", "_") +
             '" class="title-sous-categ">' +
             Categories[i]["child"][j]["category"] +
@@ -100,10 +98,6 @@ const Navbar = () => {
           for (var k = 0; k < Categories[i]["child"][j]["child"].length; k++) {
             sous_categ +=
               '<a href="/' +
-              Categories[i]["category"].replaceAll(" ", "_") +
-              "/" +
-              Categories[i]["child"][j]["category"].replaceAll(" ", "_") +
-              "/" +
               Categories[i]["child"][j]["child"][k]["category"].replaceAll(
                 " ",
                 "_"
@@ -178,12 +172,7 @@ const Navbar = () => {
                           <li key={sous_item.id} data-id={sous_item.id}>
                             <Link
                               onClick={closeSideBar}
-                              to={
-                                "/" +
-                                item.category.replaceAll(" ", "_") +
-                                "/" +
-                                sous_item.category.replaceAll(" ", "_")
-                              }
+                              to={"/" + sous_item.category.replaceAll(" ", "_")}
                             >
                               <div className="bg-orange-categ">
                                 {sous_item.category}
@@ -198,13 +187,6 @@ const Navbar = () => {
                                       <Link
                                         onClick={closeSideBar}
                                         to={
-                                          "/" +
-                                          item.category.replaceAll(" ", "_") +
-                                          "/" +
-                                          sous_item.category.replaceAll(
-                                            " ",
-                                            "_"
-                                          ) +
                                           "/" +
                                           sous_sous_categ.category.replaceAll(
                                             " ",
@@ -242,9 +224,8 @@ const Navbar = () => {
     sb.className = "side-bar-categorie shadow-lg";
   }
   function IsLoggin() {
-    if (localStorage.getItem("token") !== null) {
+    if (localStorage.getItem("access_token") !== null) {
       return true;
-      console.log(localStorage.getItem("token"));
     } else {
       return false;
     }
@@ -383,26 +364,30 @@ const Navbar = () => {
                     </span>
                   </span>
                   <ul
-                    class="dropdown-menu dropdown-menu-end"
+                    className="dropdown-menu dropdown-menu-end"
                     aria-labelledby="dropdownClient"
                   >
                     <li>
                       <Link
                         to={"/myaccount"}
-                        class="dropdown-item "
+                        className="dropdown-item "
                         type="button"
                       >
                         My account
                       </Link>
                     </li>
                     <li>
-                      <Link to={"/chat"} class="dropdown-item " type="button">
+                      <Link
+                        to={"/chat"}
+                        className="dropdown-item "
+                        type="button"
+                      >
                         Messages
                       </Link>
                     </li>
                     <li>
                       <button
-                        class="dropdown-item"
+                        className="dropdown-item"
                         type="button"
                         onClick={logout}
                       >
@@ -413,20 +398,20 @@ const Navbar = () => {
                 </div>
                 |
                 <Link
-                  to="panier"
+                  to="/panier"
                   type="button"
                   className="SpanUserNav text-white"
                 >
                   <p className="d-inline position-relative">
                     <FaShoppingCart className="iconCart mx-2" />
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                      99+
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      {numberOfProduct}
                     </span>
                   </p>
                 </Link>
               </div>
             ) : (
-              <div className="col-250 userDetailsNavbar">
+              <div className="col-230 userDetailsNavbar">
                 <FaUserAlt className="iconUser" />
                 <Link to="/login" className="navFromNavbar">
                   Sign In
