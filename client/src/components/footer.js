@@ -19,16 +19,10 @@ const Footer = () => {
                 <Link to="/">Market Place</Link>
               </li>
               <li>
-                <Link to="/events">Events</Link>
+                <Link to="/about">About Us</Link>
               </li>
               <li>
-                <Link to="/about">About</Link>
-              </li>
-              <li>
-                <Link to="/blogs">Blogs</Link>
-              </li>
-              <li>
-                <Link to="/contact">Contact</Link>
+                <Link to="/contact">Contact Us</Link>
               </li>
             </ul>
           </div>
@@ -44,10 +38,16 @@ const Footer = () => {
               <li>
                 <Link to="/registerPO">Start selling in our marketplace</Link>
               </li>
+              <li>
+                <Link to="/PrivacyPolicy">Privacy Policy</Link>
+              </li>
+              <li>
+                <Link to="/TermsAndConditions">Terms and Conditions</Link>
+              </li>
             </ul>
           </div>
           <div className="col-md-6 item text">
-            <h3>M - Place</h3>
+            <h3>E-MarketPlace</h3>
             <p>
               Praesent sed lobortis mi. Suspendisse vel placerat ligula. Vivamus
               ac sem lacus. Ut vehicula rhoncus elementum. Etiam quis tristique

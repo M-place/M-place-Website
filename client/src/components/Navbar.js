@@ -9,7 +9,7 @@ import { AiOutlineMenu, AiOutlineClose, AiOutlineSearch } from "react-icons/ai";
 import { FaShoppingCart, FaUserAlt } from "react-icons/fa";
 import api from "./../config.service";
 
-const Navbar = () => {
+const Navbar = ({ numberOfProduct }) => {
   //begin api getAll
   const [Categories, setCategories] = useState([]);
   const retrieveCategories = async () => {
@@ -91,8 +91,6 @@ const Navbar = () => {
         for (var j = 0; j < Categories[i]["child"].length; j++) {
           sous_categ +=
             '<div class="sous-categorie-bloc"> <a href="/' +
-            Categories[i]["category"].replaceAll(" ", "_") +
-            "/" +
             Categories[i]["child"][j]["category"].replaceAll(" ", "_") +
             '" class="title-sous-categ">' +
             Categories[i]["child"][j]["category"] +
@@ -100,10 +98,6 @@ const Navbar = () => {
           for (var k = 0; k < Categories[i]["child"][j]["child"].length; k++) {
             sous_categ +=
               '<a href="/' +
-              Categories[i]["category"].replaceAll(" ", "_") +
-              "/" +
-              Categories[i]["child"][j]["category"].replaceAll(" ", "_") +
-              "/" +
               Categories[i]["child"][j]["child"][k]["category"].replaceAll(
                 " ",
                 "_"
@@ -178,12 +172,7 @@ const Navbar = () => {
                           <li key={sous_item.id} data-id={sous_item.id}>
                             <Link
                               onClick={closeSideBar}
-                              to={
-                                "/" +
-                                item.category.replaceAll(" ", "_") +
-                                "/" +
-                                sous_item.category.replaceAll(" ", "_")
-                              }
+                              to={"/" + sous_item.category.replaceAll(" ", "_")}
                             >
                               <div className="bg-orange-categ">
                                 {sous_item.category}
@@ -198,13 +187,6 @@ const Navbar = () => {
                                       <Link
                                         onClick={closeSideBar}
                                         to={
-                                          "/" +
-                                          item.category.replaceAll(" ", "_") +
-                                          "/" +
-                                          sous_item.category.replaceAll(
-                                            " ",
-                                            "_"
-                                          ) +
                                           "/" +
                                           sous_sous_categ.category.replaceAll(
                                             " ",
@@ -242,9 +224,8 @@ const Navbar = () => {
     sb.className = "side-bar-categorie shadow-lg";
   }
   function IsLoggin() {
-    if (localStorage.getItem("token") !== null) {
+    if (localStorage.getItem("access_token") !== null) {
       return true;
-      console.log(localStorage.getItem("token"));
     } else {
       return false;
     }
@@ -279,7 +260,7 @@ const Navbar = () => {
       <header className="site-navbar">
         <div className="container">
           <div className="row align-items-center position-relative">
-            <div className="col-3">
+            <div className="col-12 col-md-3 text-md-center">
               <div className="site-logo">
                 <Link to="/" className="font-weight-bold">
                   <img src={logo} draggable="false" alt="logo" />
@@ -287,18 +268,9 @@ const Navbar = () => {
               </div>
             </div>
 
-            <div className="col-9  text-right">
-              <span className="d-inline-block d-lg-none">
-                <a
-                  href="/"
-                  className="text-primary site-menu-toggle js-menu-toggle py-5"
-                >
-                  <AiOutlineMenu />
-                </a>
-              </span>
-
+            <div className="col-md-9  text-right">
               <nav
-                className="site-navigation text-right ml-auto d-none d-lg-block"
+                className="site-navigation text-right ml-auto d-none d-md-block"
                 role="navigation"
               >
                 <ul className="site-menu main-menu js-clone-nav ml-auto ">
@@ -317,35 +289,13 @@ const Navbar = () => {
                   </li>
                   <li
                     className={
-                      window.location.pathname.split("/")[1] === "events"
-                        ? "active"
-                        : ""
-                    }
-                  >
-                    <Link to="/events" className="nav-link">
-                      Events
-                    </Link>
-                  </li>
-                  <li
-                    className={
                       window.location.pathname.split("/")[1] === "about"
                         ? "active"
                         : ""
                     }
                   >
                     <Link to="/about" className="nav-link">
-                      About
-                    </Link>
-                  </li>
-                  <li
-                    className={
-                      window.location.pathname.split("/")[1] === "blogs"
-                        ? "active"
-                        : ""
-                    }
-                  >
-                    <Link to="/blogs" className="nav-link">
-                      Blog
+                      About Us
                     </Link>
                   </li>
                   <li
@@ -356,7 +306,7 @@ const Navbar = () => {
                     }
                   >
                     <Link to="/contact" className="nav-link">
-                      Contact
+                      Contact Us
                     </Link>
                   </li>
                 </ul>
@@ -370,7 +320,7 @@ const Navbar = () => {
           <div className="row position-relative margin-10p">
             {loadNavbar()}
 
-            <div className="col p-0">
+            <div className="col-auto-search p-0">
               <div className="h-100">
                 <button
                   className="navbar-toggler d-lg-none"
@@ -399,7 +349,7 @@ const Navbar = () => {
               </div>
             </div>
             {IsLoggin() ? (
-              <div className="col-200">
+              <div className="p-0 width-auto">
                 <div className="userNav">
                   <span
                     type="button"
@@ -409,26 +359,35 @@ const Navbar = () => {
                     aria-expanded="false"
                   >
                     <FaUserAlt className="iconUser" />
-                    <span className="username">
+                    <span className="username d-none d-sm-inline ">
                       {localStorage.getItem("user")}
                     </span>
                   </span>
                   <ul
-                    class="dropdown-menu dropdown-menu-end"
+                    className="dropdown-menu dropdown-menu-end"
                     aria-labelledby="dropdownClient"
                   >
                     <li>
                       <Link
                         to={"/myaccount"}
-                        class="dropdown-item "
+                        className="dropdown-item "
                         type="button"
                       >
                         My account
                       </Link>
                     </li>
                     <li>
+                      <Link
+                        to={"/chat"}
+                        className="dropdown-item "
+                        type="button"
+                      >
+                        Messages
+                      </Link>
+                    </li>
+                    <li>
                       <button
-                        class="dropdown-item"
+                        className="dropdown-item"
                         type="button"
                         onClick={logout}
                       >
@@ -438,10 +397,21 @@ const Navbar = () => {
                   </ul>
                 </div>
                 |
-                <FaShoppingCart className="iconCart mx-2" />
+                <Link
+                  to="/panier"
+                  type="button"
+                  className="SpanUserNav text-white"
+                >
+                  <p className="d-inline position-relative">
+                    <FaShoppingCart className="iconCart mx-2" />
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      {numberOfProduct}
+                    </span>
+                  </p>
+                </Link>
               </div>
             ) : (
-              <div className="col-250 userDetailsNavbar">
+              <div className="col-230 userDetailsNavbar">
                 <FaUserAlt className="iconUser" />
                 <Link to="/login" className="navFromNavbar">
                   Sign In
